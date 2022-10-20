@@ -1,0 +1,10 @@
+version: '3.5'
+services:
+  mock-oauth:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    volumes:
+      - ./data/config.yml:/usr/src/app/data/config.yml
+    ports:
+      - "9000:9000"

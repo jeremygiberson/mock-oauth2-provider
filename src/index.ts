@@ -5,7 +5,7 @@
 
 import {startApp, stopApp} from './mock-oauth2-social-app';
 
-export {MyUser, UserRepository, userRepository} from './user-repository';
+
 export namespace MockTestOauth2SocialApp {
   export const startMock = startApp;
   export const stopMock = stopApp;

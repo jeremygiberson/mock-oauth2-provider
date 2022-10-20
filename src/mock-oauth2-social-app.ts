@@ -22,6 +22,7 @@ import express from 'express';
 import {Server} from 'http';
 import jwt from 'jsonwebtoken';
 import {MyUser} from './user-repository';
+import {loadConfig} from './config';
 
 /* eslint-disable @typescript-eslint/naming-convention */
 
@@ -55,48 +56,19 @@ interface AppRegistry {
   [clientId: string]: App;
 }
 
+const config = loadConfig<App>();
+
 /**
  * apps registered with this provider
  * format:
  *   { clientId: {client_secret, list_of_tokens} }
  */
-const registeredApps: AppRegistry = {
-  '1111': {client_secret: 'app1_secret', tokens: {}},
-  '2222': {client_secret: 'app2_secret', tokens: {}},
-};
+const registeredApps = config.registeredApps;
 
 /**
  * user registry
  */
-const users: MyUser[] = [
-  {
-    id: '1001',
-    username: 'user1',
-    firstName: 'tinker',
-    lastName: 'bell',
-    password: 'abc',
-    email: 'usr1@lb.com',
-    signingKey: 'AZeb==',
-  },
-  {
-    id: '1002',
-    username: 'user2',
-    firstName: 'rosetta',
-    lastName: 'fawn',
-    password: 'xyz',
-    email: 'usr2@lb2.com',
-    signingKey: 'BuIx=+',
-  },
-  {
-    id: '1003',
-    username: 'testuser',
-    firstName: 'vidia',
-    lastName: 'zarina',
-    password: 'xyz',
-    email: 'test@example.com',
-    signingKey: 'HuYa=+',
-  },
-];
+const users: MyUser[] = config.users;
 
 /**
  * find a user by a name and password
@@ -133,7 +105,7 @@ async function createJwt(
       first_name: user.firstName,
       email: user.email,
       username: user.email,
-      iss: 'sample oauth provider',
+      iss: config.issuer,
       exp: Math.floor(Date.now() / 1000) + 5 * 1000,
       iat: Math.floor(Date.now() / 1000),
       grant_type: 'auth code',
@@ -228,10 +200,10 @@ app.get('/login', function (req, response) {
       '" />',
   );
   response.write(
-    '<input type=text name=scope value="' + req.query.scope + '" />',
+    '<input type=text name=scope value="' + (req.query.scope||'') + '" placeholder="scope"/>',
   );
-  response.write('<input type=text name=username />');
-  response.write('<input type=text name=password />');
+  response.write('<input type=text name=username placeholder="username"/>');
+  response.write('<input type=text name=password placeholder="password"/>');
   response.write('<button type="submit">Login</button>');
   response.write('</body></html>');
   response.end();
@@ -354,6 +326,58 @@ app.get('/verify', async function (req, res) {
     res.status(401).send({error: err.message});
   }
 });
+
+app.get('/oauth/.well-known/openid-configuration', function(req, res){
+  let host = (req.secure ? 'https://':'http://') + req.header('Host');
+  res.setHeader('content-type', 'application/json')
+  res.status(200).send({
+    "issuer": config.issuer,
+    "authorization_endpoint":`${host}/oauth/dialog`,
+    "token_endpoint":`${host}/oauth/token`,
+    "userinfo_endpoint":`${host}/verify`,
+    "scopes_supported":[
+      "READ",
+      "WRITE",
+      "DELETE",
+      "openid",
+      "scope",
+      "profile",
+      "email",
+      "address",
+      "phone"
+    ],
+    "response_types_supported":[
+      "code",
+      // "code id_token",
+      // "code token",
+      // "code id_token token",
+      // "token",
+      // "id_token",
+      // "id_token token"
+    ],
+    "grant_types_supported":[
+      "authorization_code",
+    ],
+    "subject_types_supported":[
+      "public"
+    ],
+    "id_token_signing_alg_values_supported":[
+      "HS256",
+    ],
+    "token_endpoint_auth_methods_supported":[
+      "client_secret_post",
+      "client_secret_basic",
+      "client_secret_jwt",
+      "private_key_jwt"
+    ],
+    "token_endpoint_auth_signing_alg_values_supported":[
+      "HS256",
+    ],
+    "claims_parameter_supported":false,
+    "request_parameter_supported":false,
+    "request_uri_parameter_supported":false
+  })
+})
 
 export function startApp(port = 9000) {
   server = app.listen(port);

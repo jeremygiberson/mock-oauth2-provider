@@ -1,3 +1,11 @@
+# Dockerized @loopback-next/mock-oauth2-provider
+This fork dockerizes the mockoauth2-provider and makes the test users configurable via a yaml file that can be mounted 
+from the host OS. 
+
+This repo was forked w/ `git subtree` so that updates to the upstream package can be pulled in easily.
+More about that process [here](https://stackoverflow.com/questions/24577084/forking-a-sub-directory-of-a-repository-on-github-and-making-it-part-of-my-own-r).
+
+# mock-oauth2-provider
 This package provides an app which mocks the OAuth2 authorization flow login
 with a social app like facebook, google, etc
 
