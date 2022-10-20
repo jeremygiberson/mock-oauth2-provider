@@ -5,6 +5,26 @@ from the host OS.
 This repo was forked w/ `git subtree` so that updates to the upstream package can be pulled in easily.
 More about that process [here](https://stackoverflow.com/questions/24577084/forking-a-sub-directory-of-a-repository-on-github-and-making-it-part-of-my-own-r).
 
+## Getting Started
+You just need to spin up a container with this image and you've got a working mock oauth server.
+See [docker-compose.yml](docker-compose.yml) for an demonstration.
+
+Note, the service `volumes` section in the sample `docker-compose.yml`, this is how to configure the available users in the mock server.
+See [data/config.yml](data/config.yml) for a configuration example.
+
+Once the container is running, you simply just need to point your project to it.
+Most OpenID clients/libraries support configuration via a `.well-known` configuration url, this
+mock servers `.well-known` configuration is at `http://localhost:9000/oauth/.well-known/openid-configuration`
+
+## Configuration
+In `config.yml` you'll find the issuer, users and apps for the mock server.
+If you don't override the config w/ the volume mount, you can simply use the values in `config.yml` for your testing.
+Otherwise, you'll need to supply all the clients and users you need for your testing.
+
+## Final Notes
+Keep in mind, this is a bare bones oauth server. If you need more robust or polished functionality, I recommend you use
+an actual identity provider that can run locally (like [keycloak](https://www.keycloak.org/)).  
+
 # mock-oauth2-provider
 This package provides an app which mocks the OAuth2 authorization flow login
 with a social app like facebook, google, etc
